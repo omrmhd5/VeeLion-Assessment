@@ -734,3 +734,54 @@ Not blockers for this refactor, but needed before production.
 ## Applied Fixes
 
 Summary of what was implemented during the refactor and which findings it addresses. Listed by change, not by review category.
+
+### Phase 1 — Shared utilities
+
+#### Fail fast on corrupted data files instead of silent data loss
+
+**Fixes:** Bug #6
+
+**Where:** `src/utils/jsonStore.js` — `readJsonArray`
+
+**What we did:** If a JSON file parses but is not an array, throw an error instead of returning `[]` (which could overwrite all data on the next write).
+
+```javascript
+const parsed = JSON.parse(raw);
+if (!Array.isArray(parsed)) {
+  throw new HttpError(500, "Data file is corrupted: expected a JSON array.");
+}
+return parsed;
+```
+
+---
+
+#### Hide route details from 404 responses
+
+**Fixes:** Security #3
+
+**Where:** `src/app.js` — 404 catch-all middleware
+
+**What we did:** Return a generic message to the client; log the full method and URL only on the server.
+
+```javascript
+app.use((req, res, next) => {
+  console.warn(`404: ${req.method} ${req.originalUrl}`);
+  next(new HttpError(404, "Route not found."));
+});
+```
+
+---
+
+#### Bind server to all network interfaces for deployment
+
+**Fixes:** Maint #5
+
+**Where:** `src/server.js`
+
+**What we did:** Listen on `0.0.0.0` so the app is reachable on Docker, Render, and similar hosts (not only localhost).
+
+```javascript
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+```
