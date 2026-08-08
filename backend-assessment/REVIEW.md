@@ -850,3 +850,62 @@ async function listActivity(req, res) {
 ```
 
 **Tested:** `GET /activity` and `POST /activity` — both returned expected `{ data }` responses; empty body correctly returns `400`.
+
+---
+
+### Phase 3 — Tasks module
+
+#### Wire up `taskValidator.js` and thin the controller
+
+**Fixes:** Maint #1, Bug #2, Bug #8, Security #1, Security #2 (title), Security #4 (tasks)
+
+**Where:** `src/modules/tasks/controllers/tasks.controller.js`, `src/modules/tasks/utils/taskValidator.js`
+
+**What we did:** Removed inline validation from the controller. All input is validated via `taskValidator.js`; errors flow through `HttpError` → `errorHandler`.
+
+```javascript
+async function createTask(req, res) {
+  const payload = validateCreateTask(req.body);
+  const task = await tasksService.createTask(payload);
+  res.status(201).json({ data: task });
+}
+```
+
+---
+
+#### Prevent mass assignment and duplicate validation in the service
+
+**Fixes:** Bug #1, Bug #8
+
+**Where:** `src/modules/tasks/services/tasks.service.js`
+
+**What we did:** Service no longer validates input or mutates the payload. `updateTask` only merges whitelisted fields already normalized by the validator.
+
+```javascript
+const updatedTask = syncStatusAndCompleted({
+  ...existingTask,
+  ...updates,
+  updatedAt: new Date().toISOString(),
+});
+```
+
+---
+
+#### Add `status` field for Reports API compatibility
+
+**Fixes:** Bug #7
+
+**Where:** `taskValidator.js`, `tasks.service.js`, `data/tasks.json`
+
+**What we did:** Added `status` (`todo` | `in-progress` | `done`) with validation. Existing seed tasks updated; `status` and `completed` stay in sync on create/update.
+
+```javascript
+if (
+  typeof payload.status !== "string" ||
+  !VALID_STATUSES.includes(payload.status)
+) {
+  throw new HttpError(400, '"status" must be one of: todo, in-progress, done.');
+}
+```
+
+**Tested:** `POST /tasks` rejects short titles; `PATCH /tasks/:id` rejects unknown fields; valid create/update with `status` works.
