@@ -29,8 +29,7 @@ What was implemented and which findings each change resolves.
 **How to read this doc**
 
 - Each finding is listed under the category that best describes its **impact** (not always where the code lives).
-- When multiple findings share the same fix, each stays separate. Headers list **all** earlier items in that fix group across the whole doc, plus the root — e.g. _(same fix as Performance #1, Maintainability #2, Maintainability #3, Code Quality #1, Code Quality #2, and Bug #3)_.
-- Overlapping items were merged where they described the same root problem.
+- When multiple findings share the same fix, each stays separate. Headers list **all** earlier items in that fix group across the whole doc, plus the root — e.g. _(same fix as Performance #1, Maintainability #2, #3, Code Quality #1, #2, and Bug #3)_.
 
 | Category            | What belongs here                                |
 | ------------------- | ------------------------------------------------ |
@@ -45,10 +44,10 @@ What was implemented and which findings each change resolves.
 ## Positive Findings
 
 - **Layered Tasks module** — `routes` → `controller` → `service`.
-- **`jsonStore.js`** — reusable async JSON file helper.
-- **`HttpError` + `errorHandler` + `asyncHandler`** — error pipeline in Tasks.
-- **`taskValidator.js`** — well-structured validation (unused, but correct design).
-- **`createId()`** — UUID-based IDs in Tasks.
+- `jsonStore.js` — reusable async JSON file helper.
+- `HttpError` **+** `errorHandler` **+** `asyncHandler` — error pipeline in Tasks.
+- `taskValidator.js` — well-structured validation (unused, but correct design).
+- `createId()` — UUID-based IDs in Tasks.
 - **Global 404 handler** in `app.js`.
 
 ---
@@ -600,7 +599,7 @@ activityRouter.post("/", asyncHandler(activityController.createActivity));
 
 ### Code Quality
 
-#### 1. Duplicate loaders and pointless `getAllActivity` wrapper in Activity _(same fix as Performance #1, Maintainability #2, Maintainability #3, and Bug #3)_
+#### 1. Duplicate loaders and pointless `getAllActivity` wrapper in Activity _(same fix as Performance #1, Maintainability #2, #3, and Bug #3)_
 
 **Where:** `src/modules/activity/services/activity.service.js`
 
@@ -632,7 +631,7 @@ async function getAllActivity() {
 
 ---
 
-#### 2. Poor naming in Activity module _(same fix as Performance #1, Maintainability #2, Maintainability #3, Code Quality #1, and Bug #3)_
+#### 2. Poor naming in Activity module _(same fix as Performance #1, Maintainability #2, #3, Code Quality #1, and Bug #3)_
 
 **Where:** `activity.service.js`, `activity.controller.js`, `activity.routes.js`
 
@@ -653,7 +652,7 @@ function get_activity(req, res) {
 
 ---
 
-#### 3. Inconsistent explicit HTTP status codes in Activity _(same fix as Performance #1, Maintainability #2, Maintainability #3, Code Quality #1, Code Quality #2, and Bug #3)_
+#### 3. Inconsistent explicit HTTP status codes in Activity _(same fix as Performance #1, Maintainability #2, #3, Code Quality #1, #2, and Bug #3)_
 
 **Where:** `activity.controller.js`
 
@@ -735,5 +734,3 @@ Not blockers for this refactor, but needed before production.
 ## Applied Fixes
 
 Summary of what was implemented during the refactor and which findings it addresses. Listed by change, not by review category.
-
-<!-- TODO: fill in as fixes are applied -->
