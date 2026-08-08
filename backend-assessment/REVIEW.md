@@ -6,7 +6,7 @@ This document captures findings from reviewing the Tasks API, Activity Log API, 
 
 ### [Positive Findings](#positive-findings)
 
-What the codebase already does well and should be kept during refactoring.
+What the **starter codebase** already did well (kept or extended during refactoring — not new work).
 
 ### [Refactoring Principles](#refactoring-principles)
 
@@ -42,6 +42,8 @@ What was implemented and which findings each change resolves.
 ---
 
 ## Positive Findings
+
+What the **starter codebase** already did well (kept or extended during refactoring — not new work):
 
 - **Layered Tasks module** — `routes` → `controller` → `service`.
 - `jsonStore.js` — reusable async JSON file helper.

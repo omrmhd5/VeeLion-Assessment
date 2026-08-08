@@ -44,21 +44,17 @@ What was implemented and which findings each change resolves.
 
 ## Positive Findings
 
+What the **starter codebase** already did well (kept or extended during refactoring — not new work):
+
 - **Layered Tasks module** — thin page (`app/tasks/page.tsx`) → `TaskDashboard` → `TaskList` / `TaskItem` / `StatusFilter`.
 - **`useTasks` hook** — encapsulates fetch, filter, update, loading, and error state with `useCallback` and `useMemo`.
-- **`requestJson` helper** in `useTasks` — checks `response.ok` and parses `{ error: { message } }` consistently.
+- **`requestJson` pattern** in Tasks — checks `response.ok` and parses `{ error: { message } }` consistently (later extracted to shared `apiClient.ts`).
 - **Loading, error, and retry UI** in `TaskDashboard` — user gets feedback when things go wrong.
 - **Empty state** in `TaskList` when no tasks match the active filter.
 - **API route proxies** under `app/api/*` — frontend talks to Next.js routes, which call `backendApi.ts`.
 - **`backendApi.ts`** — centralizes backend URL and error parsing for server-side fetches.
 - **TypeScript types** in `types/api.ts` — `Task`, `ActivityLog`, and response wrappers are defined.
 - **Accessibility basics in Tasks** — `aria-label` on task list, `aria-pressed` on filter buttons, `aria-label` on toggle buttons in `TaskItem`.
-- **CSS variables** in `globals.css` — consistent tokens for colors, radius, and spacing.
-- **Shared layout** — `AppShell` + `AppNav` in `layout.tsx` with active route highlighting across Home, Tasks, Activity, and Reports.
-- **Design system classes** — reusable card, button, badge, and state styles in `globals.css` (no inline styles in components).
-- **UI polish** — guided by [taste-skill](https://github.com/Leonxlnx/taste-skill), [Emil Kowalski skills](https://github.com/emilkowalski/skills), and [Impeccable](https://github.com/pbakaus/impeccable); light/dark toggle, Plus Jakarta Sans, shared nav.
-- **Reports module** — `/reports` with `useReports`, API proxy, and status breakdown UI.
-- **Task & activity integration** — full task API proxies, CRUD UI, status filters, and activity logging on mutations (Phase 5).
 
 ---
 
