@@ -3,6 +3,7 @@ const path = require("node:path");
 const { createId } = require("../../../utils/id");
 const { readJsonArray, writeJsonArray } = require("../../../utils/jsonStore");
 const HttpError = require("../../../utils/httpError");
+const activityService = require("../../activity/services/activity.service");
 
 const TASKS_FILE_PATH = path.join(process.cwd(), "data", "tasks.json");
 
@@ -54,6 +55,10 @@ async function createTask(payload) {
 
   tasks.push(newTask);
   await writeJsonArray(TASKS_FILE_PATH, tasks);
+  await activityService.createActivity({
+    action: "task.created",
+    info: newTask.id,
+  });
 
   return newTask;
 }
@@ -75,6 +80,10 @@ async function updateTask(taskId, updates) {
 
   tasks[taskIndex] = updatedTask;
   await writeJsonArray(TASKS_FILE_PATH, tasks);
+  await activityService.createActivity({
+    action: "task.updated",
+    info: updatedTask.id,
+  });
 
   return updatedTask;
 }
@@ -89,6 +98,10 @@ async function deleteTask(taskId) {
 
   const [removedTask] = tasks.splice(taskIndex, 1);
   await writeJsonArray(TASKS_FILE_PATH, tasks);
+  await activityService.createActivity({
+    action: "task.deleted",
+    info: removedTask.id,
+  });
 
   return removedTask;
 }

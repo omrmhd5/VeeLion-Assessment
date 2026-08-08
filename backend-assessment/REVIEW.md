@@ -913,3 +913,24 @@ function syncStatusAndCompleted(task) {
 ```
 
 **Tested:** `POST /tasks` rejects short titles; `PATCH /tasks/:id` rejects unknown fields; valid create/update with `status` works.
+
+---
+
+### Phase 4 — Task ↔ Activity integration
+
+#### Log activity on task mutations
+
+**Fixes:** Maint #4
+
+**Where:** `src/modules/tasks/services/tasks.service.js`
+
+**What we did:** After create/update/delete, call `activityService.createActivity` with the task id as `info`.
+
+```javascript
+await activityService.createActivity({
+  action: "task.created",
+  info: newTask.id,
+});
+```
+
+**Tested:** e.g. `POST /tasks` with `{ "title": "Review API docs" }` created task `c3b2f45d-...` and logged `task.created` with that id in activity.
