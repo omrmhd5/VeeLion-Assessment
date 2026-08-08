@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getErrorMessage, requestJson } from "@/lib/apiClient";
+import { applyCompleted, normalizeTask } from "@/lib/taskUtils";
 import type {
   Task,
   TaskFilter,
@@ -12,43 +13,64 @@ import type {
 export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [filter, setFilter] = useState<TaskFilter>("all");
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>("");
-  const [updatingTaskId, setUpdatingTaskId] = useState<string>("");
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState("");
+  const [updatingTaskId, setUpdatingTaskId] = useState("");
+  const hasLoadedRef = useRef(false);
 
   const fetchTasks = useCallback(async () => {
+    const isRetry = hasLoadedRef.current;
+
     try {
-      setLoading(true);
+      if (isRetry) {
+        setIsRefreshing(true);
+      }
+
       setError("");
 
       const body = await requestJson<TasksResponse>("/api/tasks", {
         method: "GET",
       });
 
-      setTasks(body.data);
-    } catch (error) {
-      setError(getErrorMessage(error, "Could not load tasks right now."));
+      setTasks(body.data.map(normalizeTask));
+      hasLoadedRef.current = true;
+    } catch (err) {
+      setError(getErrorMessage(err, "Could not load tasks right now."));
     } finally {
-      setLoading(false);
+      setIsInitialLoading(false);
+      setIsRefreshing(false);
     }
   }, []);
 
   const updateTaskStatus = useCallback(
     async (taskId: string, completed: boolean) => {
-      try {
-        setUpdatingTaskId(taskId);
-        setError("");
+      let previousTasks: Task[] = [];
 
+      setUpdatingTaskId(taskId);
+      setError("");
+
+      setTasks((current) => {
+        previousTasks = current;
+        return current.map((task) =>
+          task.id === taskId ? applyCompleted(task, completed) : task,
+        );
+      });
+
+      try {
         const body = await requestJson<TaskResponse>(`/api/tasks/${taskId}`, {
           method: "PATCH",
           body: JSON.stringify({ completed }),
         });
 
-        setTasks((previous) =>
-          previous.map((task) => (task.id === taskId ? body.data : task)),
+        setTasks((current) =>
+          current.map((task) =>
+            task.id === taskId ? normalizeTask(body.data) : task,
+          ),
         );
-      } catch (error) {
-        setError(getErrorMessage(error, "Could not update task status."));
+      } catch (err) {
+        setTasks(previousTasks);
+        setError(getErrorMessage(err, "Could not update task status."));
       } finally {
         setUpdatingTaskId("");
       }
@@ -76,7 +98,8 @@ export function useTasks() {
     tasks,
     filteredTasks,
     filter,
-    loading,
+    isInitialLoading,
+    isRefreshing,
     error,
     updatingTaskId,
     setFilter,

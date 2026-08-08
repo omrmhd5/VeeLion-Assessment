@@ -9,7 +9,8 @@ export function TaskDashboard() {
   const {
     filteredTasks,
     filter,
-    loading,
+    isInitialLoading,
+    isRefreshing,
     error,
     updatingTaskId,
     setFilter,
@@ -21,6 +22,8 @@ export function TaskDashboard() {
     updateTaskStatus(task.id, !task.completed);
   };
 
+  const showList = !isInitialLoading;
+
   return (
     <section className="stack">
       <header className="card" style={{ padding: "1rem" }}>
@@ -29,23 +32,45 @@ export function TaskDashboard() {
 
       <StatusFilter value={filter} onChange={setFilter} />
 
-      {loading ? (
+      {isInitialLoading ? (
         <section className="card" style={{ padding: "1rem" }}>
           <p style={{ margin: 0 }}>Loading tasks...</p>
         </section>
       ) : null}
 
       {error ? (
-        <section className="card" style={{ padding: "1rem", borderColor: "#e3b4c0", background: "#fff8fa" }}>
-          <p style={{ marginTop: 0, marginBottom: "0.75rem", color: "var(--danger)" }}>{error}</p>
-          <button type="button" className="button" onClick={fetchTasks}>
+        <section
+          className="card"
+          style={{
+            padding: "1rem",
+            borderColor: "#e3b4c0",
+            background: "#fff8fa",
+          }}>
+          <p
+            style={{
+              marginTop: 0,
+              marginBottom: "0.75rem",
+              color: "var(--danger)",
+            }}>
+            {error}
+            {isRefreshing ? " Refreshing..." : ""}
+          </p>
+          <button
+            type="button"
+            className="button"
+            onClick={fetchTasks}
+            disabled={isRefreshing}>
             Retry
           </button>
         </section>
       ) : null}
 
-      {!loading && !error ? (
-        <TaskList tasks={filteredTasks} updatingTaskId={updatingTaskId} onToggle={handleToggle} />
+      {showList && (!error || filteredTasks.length > 0) ? (
+        <TaskList
+          tasks={filteredTasks}
+          updatingTaskId={updatingTaskId}
+          onToggle={handleToggle}
+        />
       ) : null}
     </section>
   );

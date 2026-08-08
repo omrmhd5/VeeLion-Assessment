@@ -924,3 +924,63 @@ export default function ActivityPage() {
 ```
 
 **Tested:** `npm run build` passes; `/activity` returns 200.
+
+---
+
+### Phase 3 — Tasks module
+
+#### Add `TaskStatus` type and normalize tasks on load
+
+**Fixes:** Code Quality #1, UX #6
+
+**Where:** `frontend/types/api.ts`, `frontend/lib/taskUtils.ts` (new)
+
+**What we did:** Added optional `status` to `Task`. `normalizeTask` derives `todo` / `done` from `completed` when the API omits `status`. Filter labels updated to "To do" / "Done".
+
+```typescript
+export type TaskStatus = "todo" | "in-progress" | "done";
+
+const status = task.status ?? (task.completed ? "done" : "todo");
+```
+
+**Tested:** Tasks from provided backend (boolean-only) get `status` derived on fetch.
+
+---
+
+#### Optimistic task toggle with rollback on error
+
+**Fixes:** UX #8
+
+**Where:** `frontend/hooks/useTasks.ts`
+
+**What we did:** UI updates immediately on toggle; rolls back if PATCH fails.
+
+```typescript
+setTasks((current) => {
+  previousTasks = current;
+  return current.map((task) =>
+    task.id === taskId ? applyCompleted(task, completed) : task,
+  );
+});
+// catch → setTasks(previousTasks);
+```
+
+**Tested:** Toggle updates badge instantly; failed PATCH restores previous state.
+
+---
+
+#### Separate initial loading from retry refresh
+
+**Fixes:** UX #5
+
+**Where:** `frontend/hooks/useTasks.ts`, `frontend/components/tasks/TaskDashboard.tsx`
+
+**What we did:** `isInitialLoading` only on first fetch. Retry sets `isRefreshing` and keeps the task list visible.
+
+```typescript
+const isRetry = hasLoadedRef.current;
+if (isRetry) setIsRefreshing(true);
+// TaskDashboard: show list when !isInitialLoading, even if error + stale data
+```
+
+**Tested:** Retry shows error banner + existing tasks; no full-page "Loading tasks..." flash.

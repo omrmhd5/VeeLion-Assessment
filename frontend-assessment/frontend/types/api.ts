@@ -1,7 +1,10 @@
+export type TaskStatus = "todo" | "in-progress" | "done";
+
 export type Task = {
   id: string;
   title: string;
   completed: boolean;
+  status?: TaskStatus;
   createdAt: string;
   updatedAt: string;
 };
