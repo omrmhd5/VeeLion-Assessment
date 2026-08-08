@@ -1,36 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { ErrorResponse, Task, TaskFilter, TaskResponse, TasksResponse } from "@/types/api";
-
-function getErrorMessage(error: unknown, fallback: string): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  return fallback;
-}
-
-async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers || {}),
-    },
-  });
-
-  if (!response.ok) {
-    try {
-      const body = (await response.json()) as ErrorResponse;
-      throw new Error(body.error?.message || `Request failed with ${response.status}`);
-    } catch (error) {
-      throw new Error(getErrorMessage(error, `Request failed with ${response.status}`));
-    }
-  }
-
-  return (await response.json()) as T;
-}
+import { getErrorMessage, requestJson } from "@/lib/apiClient";
+import type {
+  Task,
+  TaskFilter,
+  TaskResponse,
+  TasksResponse,
+} from "@/types/api";
 
 export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -56,25 +33,28 @@ export function useTasks() {
     }
   }, []);
 
-  const updateTaskStatus = useCallback(async (taskId: string, completed: boolean) => {
-    try {
-      setUpdatingTaskId(taskId);
-      setError("");
+  const updateTaskStatus = useCallback(
+    async (taskId: string, completed: boolean) => {
+      try {
+        setUpdatingTaskId(taskId);
+        setError("");
 
-      const body = await requestJson<TaskResponse>(`/api/tasks/${taskId}`, {
-        method: "PATCH",
-        body: JSON.stringify({ completed }),
-      });
+        const body = await requestJson<TaskResponse>(`/api/tasks/${taskId}`, {
+          method: "PATCH",
+          body: JSON.stringify({ completed }),
+        });
 
-      setTasks((previous) =>
-        previous.map((task) => (task.id === taskId ? body.data : task))
-      );
-    } catch (error) {
-      setError(getErrorMessage(error, "Could not update task status."));
-    } finally {
-      setUpdatingTaskId("");
-    }
-  }, []);
+        setTasks((previous) =>
+          previous.map((task) => (task.id === taskId ? body.data : task)),
+        );
+      } catch (error) {
+        setError(getErrorMessage(error, "Could not update task status."));
+      } finally {
+        setUpdatingTaskId("");
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     fetchTasks();

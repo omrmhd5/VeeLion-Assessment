@@ -804,4 +804,32 @@ Not blockers for this assessment, but needed before production.
 
 Summary of what was implemented during the refactor and which findings it addresses. Listed by change, not by review category.
 
-_To be filled in as each phase is completed._
+### Phase 1 — Shared utilities
+
+#### Extract shared `apiClient` for client-side fetches
+
+**Fixes:** Maintainability #4, Maintainability #6
+
+**Where:** `frontend/lib/apiClient.ts` (new), `frontend/hooks/useTasks.ts`
+
+**What we did:** Moved `requestJson` and `getErrorMessage` out of `useTasks` into a shared module. `useTasks` now imports from `@/lib/apiClient` — behavior unchanged. Future hooks (`useActivity`, `useReports`) can reuse the same client.
+
+```typescript
+import { getErrorMessage, requestJson } from "@/lib/apiClient";
+
+const body = await requestJson<TasksResponse>("/api/tasks", { method: "GET" });
+setTasks(body.data);
+```
+
+```typescript
+export async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(url, { ...init, headers: { "Content-Type": "application/json", ... } });
+  if (!response.ok) {
+    const body = (await response.json()) as ErrorResponse;
+    throw new Error(body.error?.message || `Request failed with ${response.status}`);
+  }
+  return (await response.json()) as T;
+}
+```
+
+**Tested:** `npm run build` passes. Tasks hook still uses `requestJson` for `GET /api/tasks` and `PATCH /api/tasks/:id` with the same error parsing as before.
