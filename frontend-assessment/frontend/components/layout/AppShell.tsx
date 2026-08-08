@@ -8,8 +8,13 @@ type AppShellProps = {
 export function AppShell({ children }: AppShellProps) {
   return (
     <ThemeProvider>
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
       <AppNav />
-      <main className="app-main">{children}</main>
+      <main id="main-content" className="app-main" tabIndex={-1}>
+        {children}
+      </main>
     </ThemeProvider>
   );
 }

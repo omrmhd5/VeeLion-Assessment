@@ -42,7 +42,11 @@ export function ActivityFeed() {
       ) : null}
 
       {isInitialLoading ? (
-        <section className="card card--padded loading-card" aria-busy="true">
+        <section
+          className="card card--padded loading-card"
+          aria-busy="true"
+          role="status"
+          aria-live="polite">
           <div className="skeleton skeleton--title" aria-hidden="true" />
           <div className="skeleton skeleton--line" aria-hidden="true" />
           <p className="state-message">Loading activity...</p>
@@ -50,7 +54,7 @@ export function ActivityFeed() {
       ) : null}
 
       {error ? (
-        <section className="card card--padded card--error">
+        <section className="card card--padded card--error" role="alert">
           <p className="error-message">
             {error}
             {isRefreshing ? " Refreshing..." : ""}

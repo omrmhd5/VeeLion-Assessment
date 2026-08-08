@@ -56,7 +56,7 @@ What was implemented and which findings each change resolves.
 - **CSS variables** in `globals.css` — consistent tokens for colors, radius, and spacing.
 - **Shared layout** — `AppShell` + `AppNav` in `layout.tsx` with active route highlighting across Home, Tasks, Activity, and Reports.
 - **Design system classes** — reusable card, button, badge, and state styles in `globals.css` (no inline styles in components).
-- **UI polish** — guided by [taste-skill](https://github.com/Leonxlnx/taste-skill) and [Emil Kowalski design-engineering skills](https://github.com/emilkowalski/skills); includes light/dark toggle, Plus Jakarta Sans typography, and shared nav.
+- **UI polish** — guided by [taste-skill](https://github.com/Leonxlnx/taste-skill), [Emil Kowalski skills](https://github.com/emilkowalski/skills), and [Impeccable](https://github.com/pbakaus/impeccable); light/dark toggle, Plus Jakarta Sans, shared nav.
 - **Reports module** — `/reports` with `useReports`, API proxy, and status breakdown UI.
 - **Optimistic task toggle** — immediate UI update with rollback on PATCH failure.
 
@@ -1045,14 +1045,13 @@ const showSummary = !isInitialLoading && (!error || summary);
 
 **Fixes:** Maintainability #5, UX #4, UX #5 _(Activity/Reports)_, UX #7
 
-**Skills used:** UI polish followed [taste-skill](https://github.com/Leonxlnx/taste-skill) (layout, tokens, anti-slop patterns) and [Emil Kowalski design-engineering skills](https://github.com/emilkowalski/skills) (motion, button feedback, interaction timing).
+**Skills used:** [taste-skill](https://github.com/Leonxlnx/taste-skill), [Emil Kowalski design-engineering skills](https://github.com/emilkowalski/skills), and [Impeccable](https://github.com/pbakaus/impeccable) (`audit` + `polish`).
 
 **What we did:**
 
 - Replaced inline styles with a shared class system in `globals.css` (cards, buttons, badges, loading/error states).
-- Added sticky `AppNav` and richer home module cards with descriptions and hover states.
-- Set typography to Plus Jakarta Sans + JetBrains Mono via `next/font`.
-- Added optional light/dark mode with a nav toggle, `localStorage` persistence, and system preference as the first-visit default.
+- Added sticky `AppNav`, home module cards, Plus Jakarta Sans + JetBrains Mono, and light/dark toggle with `localStorage` persistence.
 - Aligned Activity and Reports retry UX with Tasks (`isInitialLoading` / `isRefreshing`).
+- Final Impeccable pass: skip link, focus rings, live regions on loading/errors, 44px touch targets, mobile nav wrap, token cleanup.
 
-**Tested:** No inline styles in components or pages. Theme toggle persists across reloads. `npm run build` passes.
+**Tested:** No inline styles. Theme toggle persists. Impeccable detector clean. `npm run build` passes.
