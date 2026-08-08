@@ -984,3 +984,49 @@ if (isRetry) setIsRefreshing(true);
 ```
 
 **Tested:** Retry shows error banner + existing tasks; no full-page "Loading tasks..." flash.
+
+---
+
+### Reports API
+
+#### `GET /reports/tasks-summary` proxy and `useReports` hook
+
+**Fixes:** _(new module — README §3)_
+
+**Where:** `frontend/lib/backendApi.ts`, `frontend/app/api/reports/tasks-summary/route.ts`, `frontend/hooks/useReports.ts`, `frontend/types/api.ts`
+
+**What we did:** Added `TasksSummary` type and server-side fetch from the backend Reports API. Next.js route proxies the flat JSON response (no `{ data }` wrapper, per README).
+
+```typescript
+export type TasksSummary = {
+  total: number;
+  byStatus: { todo: number; "in-progress": number; done: number };
+  recentActivityCount: number;
+};
+
+const data = await requestJson<TasksSummary>("/api/reports/tasks-summary");
+```
+
+**Tested:** `GET /api/reports/tasks-summary` returns `total`, `byStatus`, and `recentActivityCount`.
+
+---
+
+#### Reports UI at `/reports`
+
+**Where:** `frontend/components/reports/ReportsDashboard.tsx`, `StatusBreakdown.tsx`, `frontend/app/reports/page.tsx`, `frontend/app/page.tsx`
+
+**What we did:** New page shows total tasks, status breakdown, and recent activity count. Loading and error + retry match Tasks/Activity. Home page links to `/reports`.
+
+```tsx
+{
+  !loading && !error && summary ? (
+    <>
+      <section className="card">...</section> {/* total */}
+      <StatusBreakdown byStatus={summary.byStatus} />
+      <section className="card">...</section> {/* recentActivityCount */}
+    </>
+  ) : null;
+}
+```
+
+**Tested:** `npm run build` passes; `/reports` route included in build output.

@@ -31,3 +31,15 @@ export type ErrorResponse = {
 };
 
 export type TaskFilter = "all" | "completed" | "pending";
+
+export type TasksByStatus = {
+  todo: number;
+  "in-progress": number;
+  done: number;
+};
+
+export type TasksSummary = {
+  total: number;
+  byStatus: TasksByStatus;
+  recentActivityCount: number;
+};
