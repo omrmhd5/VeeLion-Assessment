@@ -934,3 +934,23 @@ await activityService.createActivity({
 ```
 
 **Tested:** e.g. `POST /tasks` with `{ "title": "Review API docs" }` created task `c3b2f45d-...` and logged `task.created` with that id in activity.
+
+---
+
+### Reports API
+
+#### `GET /reports/tasks-summary`
+
+**Where:** `src/modules/reports/` (new), `src/app.js`
+
+**What we did:** New module aggregates tasks by status and counts activity from the last 24 hours. Reuses existing task and activity services. Response is a flat object per README — no `{ data }` wrapper (unlike Tasks and Activity).
+
+```javascript
+return {
+  total: tasks.length,
+  byStatus: countTasksByStatus(tasks),
+  recentActivityCount: countRecentActivity(activities),
+};
+```
+
+**Tested:** `GET /reports/tasks-summary` returns `total: 5`, `byStatus: { todo: 2, in-progress: 1, done: 2 }`, `recentActivityCount: 2`.
