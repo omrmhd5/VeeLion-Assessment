@@ -833,3 +833,94 @@ export async function requestJson<T>(url: string, init?: RequestInit): Promise<T
 ```
 
 **Tested:** `npm run build` passes. Tasks hook still uses `requestJson` for `GET /api/tasks` and `PATCH /api/tasks/:id` with the same error parsing as before.
+
+---
+
+### Phase 2 — Activity module
+
+#### Add `useActivity` hook with shared `apiClient`
+
+**Fixes:** Performance #1, #2, #3, #4, Maintainability #3, Maintainability #7, UX #1, UX #2, Code Quality #2, React Best Practices #1, React Best Practices #2
+
+**Where:** `frontend/hooks/useActivity.ts` (new), `frontend/lib/activityUtils.ts` (new)
+
+**What we did:** Replaced timer, duplicate filters, and redundant state with source state + `useMemo`. Search uses `useDeferredValue`. Fetches via `requestJson` with loading, error, and retry support. Removed dead `everySecondTick` from stats.
+
+```typescript
+// source state only — no tick, shownActivity, or forcedList
+const [allActivity, setAllActivity] = useState<ActivityLog[]>([]);
+const [query, setQuery] = useState("");
+const deferredQuery = useDeferredValue(query);
+
+const data = await requestJson<ActivityLog[]>("/api/activity", {
+  method: "GET",
+});
+// catch → setError(...); ActivityFeed renders Retry button
+
+const filteredActivity = useMemo(
+  () => filterActivity(allActivity, deferredQuery),
+  [allActivity, deferredQuery],
+);
+
+const stats = useMemo(
+  () => ({ total: allActivity.length, visible: filteredActivity.length }),
+  [allActivity.length, filteredActivity.length],
+);
+```
+
+**Tested:** `GET /api/activity` returns activity array; hook surfaces errors instead of silently clearing data.
+
+---
+
+#### Split Activity into components
+
+**Fixes:** Maintainability #1, Maintainability #2, UX #3, React Best Practices #2
+
+**Where:** `frontend/components/activity/` — `ActivityFeed.tsx`, `ActivityList.tsx`, `ActivityItem.tsx`, `ActivitySearch.tsx`
+
+**What we did:** Extracted feed layout, search input, list, and row into focused components. One `formatActivityTime` helper; no duplicate timestamp render.
+
+```tsx
+// ActivityFeed.tsx — layout + loading / error / list
+<ActivitySearch value={query} onChange={setQuery} />;
+{
+  loading ? <p>Loading activity...</p> : null;
+}
+{
+  error ? <button onClick={fetchActivity}>Retry</button> : null;
+}
+<ActivityList
+  activities={filteredActivity}
+  hasSearchQuery={query.trim().length > 0}
+/>;
+```
+
+```tsx
+// ActivityItem.tsx — single timestamp line
+<small style={{ color: "var(--muted)" }}>{formatActivityTime(item.when)}</small>
+```
+
+**Tested:** Search filters by `action` / `info`; empty search shows "No activity matches this search."
+
+---
+
+#### Thin Activity page (server component wrapper)
+
+**Fixes:** Maintainability #1, React Best Practices #2
+
+**Where:** `frontend/app/activity/page.tsx`
+
+**What we did:** Page is now a thin wrapper like Tasks — nav + `<ActivityFeed />`. All client logic lives in the hook and components.
+
+```tsx
+export default function ActivityPage() {
+  return (
+    <main className="stack">
+      <nav>...</nav>
+      <ActivityFeed />
+    </main>
+  );
+}
+```
+
+**Tested:** `npm run build` passes; `/activity` returns 200.
