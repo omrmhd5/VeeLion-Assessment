@@ -12,8 +12,8 @@ export function ActivityList({
 }: ActivityListProps) {
   if (activities.length === 0) {
     return (
-      <section className="card" style={{ padding: "1rem" }}>
-        <p style={{ margin: 0, color: "var(--muted)" }}>
+      <section className="card card--padded">
+        <p className="state-message">
           {hasSearchQuery
             ? "No activity matches this search."
             : "No activity logged yet."}
@@ -23,18 +23,8 @@ export function ActivityList({
   }
 
   return (
-    <section
-      className="card"
-      style={{ padding: "1rem" }}
-      aria-label="Activity list">
-      <ul
-        style={{
-          margin: 0,
-          padding: 0,
-          listStyle: "none",
-          display: "grid",
-          gap: "0.7rem",
-        }}>
+    <section className="card card--padded" aria-label="Activity list">
+      <ul className="activity-list">
         {activities.map((item) => (
           <ActivityItem key={item.id} item={item} />
         ))}

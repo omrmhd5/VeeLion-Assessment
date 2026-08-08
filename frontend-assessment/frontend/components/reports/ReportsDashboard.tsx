@@ -4,79 +4,60 @@ import { useReports } from "@/hooks/useReports";
 import { StatusBreakdown } from "@/components/reports/StatusBreakdown";
 
 export function ReportsDashboard() {
-  const { summary, loading, error, fetchSummary } = useReports();
+  const { summary, isInitialLoading, isRefreshing, error, fetchSummary } =
+    useReports();
+
+  const showSummary = !isInitialLoading && (!error || summary);
 
   return (
     <section className="stack">
-      <header className="card" style={{ padding: "1rem" }}>
-        <h1 style={{ marginTop: 0, marginBottom: "0.5rem" }}>Reports</h1>
-        <p style={{ margin: 0, color: "var(--muted)" }}>
+      <header className="card card--padded page-header">
+        <h1 className="page-header__title">Reports</h1>
+        <p className="page-header__lead">
           Task and activity summary from the Reports API.
         </p>
       </header>
 
-      {loading ? (
-        <section className="card" style={{ padding: "1rem" }}>
-          <p style={{ margin: 0 }}>Loading report...</p>
+      {isInitialLoading ? (
+        <section className="card card--padded loading-card" aria-busy="true">
+          <div className="skeleton skeleton--title" aria-hidden="true" />
+          <div className="skeleton skeleton--line" aria-hidden="true" />
+          <p className="state-message">Loading report...</p>
         </section>
       ) : null}
 
       {error ? (
-        <section
-          className="card"
-          style={{
-            padding: "1rem",
-            borderColor: "#e3b4c0",
-            background: "#fff8fa",
-          }}>
-          <p
-            style={{
-              marginTop: 0,
-              marginBottom: "0.75rem",
-              color: "var(--danger)",
-            }}>
+        <section className="card card--padded card--error">
+          <p className="error-message">
             {error}
+            {isRefreshing ? " Refreshing..." : ""}
           </p>
-          <button type="button" className="button" onClick={fetchSummary}>
+          <button
+            type="button"
+            className="button button--primary"
+            onClick={fetchSummary}
+            disabled={isRefreshing}>
             Retry
           </button>
         </section>
       ) : null}
 
-      {!loading && !error && summary ? (
+      {showSummary && summary ? (
         <>
-          <section className="card" style={{ padding: "1rem" }}>
-            <h2
-              style={{
-                marginTop: 0,
-                marginBottom: "0.5rem",
-                fontSize: "1rem",
-              }}>
-              Total tasks
-            </h2>
-            <p style={{ margin: 0, fontSize: "1.75rem", fontWeight: 700 }}>
-              {summary.total}
-            </p>
+          <section className="stats-grid">
+            <article className="card card--padded stat-card stat-card--tasks">
+              <h2 className="section-title">Total tasks</h2>
+              <p className="stat-card__value">{summary.total}</p>
+            </article>
+
+            <article className="card card--padded stat-card stat-card--activity">
+              <h2 className="section-title">Recent activity</h2>
+              <p className="stat-card__value">{summary.recentActivityCount}</p>
+              <small className="text-meta">Activity log entries</small>
+            </article>
           </section>
 
           <StatusBreakdown byStatus={summary.byStatus} />
-
-          <section className="card" style={{ padding: "1rem" }}>
-            <h2
-              style={{
-                marginTop: 0,
-                marginBottom: "0.5rem",
-                fontSize: "1rem",
-              }}>
-              Recent activity
-            </h2>
-            <p style={{ margin: 0, fontSize: "1.75rem", fontWeight: 700 }}>
-              {summary.recentActivityCount}
-            </p>
-            <small style={{ color: "var(--muted)" }}>
-              Activity log entries
-            </small>
-          </section>
         </>
       ) : null}
     </section>

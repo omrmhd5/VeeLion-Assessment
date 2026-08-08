@@ -8,57 +8,64 @@ export function ActivityFeed() {
   const {
     filteredActivity,
     query,
-    loading,
+    isInitialLoading,
+    isRefreshing,
     error,
     stats,
     setQuery,
     fetchActivity,
   } = useActivity();
 
+  const showContent = !isInitialLoading;
+
   return (
     <section className="stack">
-      <header className="card" style={{ padding: "1rem" }}>
-        <h1 style={{ marginTop: 0, marginBottom: "0.5rem" }}>Activity Feed</h1>
+      <header className="card card--padded page-header">
+        <h1 className="page-header__title">Activity Feed</h1>
+        <p className="page-header__lead">
+          Search the log to find specific actions and updates.
+        </p>
         <ActivitySearch value={query} onChange={setQuery} />
       </header>
 
-      {!loading && !error ? (
-        <section className="card" style={{ padding: "1rem" }}>
-          <small style={{ color: "var(--muted)" }}>
-            Total: {stats.total} | Visible: {stats.visible}
-          </small>
+      {showContent && !error ? (
+        <section className="card card--padded-sm card--flat">
+          <div className="stats-bar font-mono">
+            <span className="stats-bar__pill">
+              Total: <strong>{stats.total}</strong>
+            </span>
+            <span className="stats-bar__pill stats-bar__pill--visible">
+              Visible: <strong>{stats.visible}</strong>
+            </span>
+          </div>
         </section>
       ) : null}
 
-      {loading ? (
-        <section className="card" style={{ padding: "1rem" }}>
-          <p style={{ margin: 0 }}>Loading activity...</p>
+      {isInitialLoading ? (
+        <section className="card card--padded loading-card" aria-busy="true">
+          <div className="skeleton skeleton--title" aria-hidden="true" />
+          <div className="skeleton skeleton--line" aria-hidden="true" />
+          <p className="state-message">Loading activity...</p>
         </section>
       ) : null}
 
       {error ? (
-        <section
-          className="card"
-          style={{
-            padding: "1rem",
-            borderColor: "#e3b4c0",
-            background: "#fff8fa",
-          }}>
-          <p
-            style={{
-              marginTop: 0,
-              marginBottom: "0.75rem",
-              color: "var(--danger)",
-            }}>
+        <section className="card card--padded card--error">
+          <p className="error-message">
             {error}
+            {isRefreshing ? " Refreshing..." : ""}
           </p>
-          <button type="button" className="button" onClick={fetchActivity}>
+          <button
+            type="button"
+            className="button button--primary"
+            onClick={fetchActivity}
+            disabled={isRefreshing}>
             Retry
           </button>
         </section>
       ) : null}
 
-      {!loading && !error ? (
+      {showContent && (!error || stats.total > 0) ? (
         <ActivityList
           activities={filteredActivity}
           hasSearchQuery={query.trim().length > 0}

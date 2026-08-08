@@ -1,9 +1,17 @@
 import type { TasksByStatus } from "@/types/api";
 
-const STATUS_ROWS: Array<{ key: keyof TasksByStatus; label: string }> = [
-  { key: "todo", label: "To do" },
-  { key: "in-progress", label: "In progress" },
-  { key: "done", label: "Done" },
+const STATUS_ROWS: Array<{
+  key: keyof TasksByStatus;
+  label: string;
+  badgeClass: string;
+}> = [
+  { key: "todo", label: "To do", badgeClass: "badge badge--todo badge--count" },
+  {
+    key: "in-progress",
+    label: "In progress",
+    badgeClass: "badge badge--progress badge--count",
+  },
+  { key: "done", label: "Done", badgeClass: "badge badge--done badge--count" },
 ];
 
 type StatusBreakdownProps = {
@@ -12,33 +20,13 @@ type StatusBreakdownProps = {
 
 export function StatusBreakdown({ byStatus }: StatusBreakdownProps) {
   return (
-    <section
-      className="card"
-      style={{ padding: "1rem" }}
-      aria-label="Tasks by status">
-      <h2 style={{ marginTop: 0, marginBottom: "0.75rem", fontSize: "1rem" }}>
-        Tasks by status
-      </h2>
-      <ul
-        style={{
-          margin: 0,
-          padding: 0,
-          listStyle: "none",
-          display: "grid",
-          gap: "0.5rem",
-        }}>
+    <section className="card card--padded" aria-label="Tasks by status">
+      <h2 className="section-title">Tasks by status</h2>
+      <ul className="status-breakdown__list">
         {STATUS_ROWS.map((row) => (
-          <li
-            key={row.key}
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              borderBottom: "1px solid var(--border)",
-              paddingBottom: "0.5rem",
-            }}>
+          <li key={row.key} className="status-breakdown__row">
             <span>{row.label}</span>
-            <span className="badge">{byStatus[row.key]}</span>
+            <span className={row.badgeClass}>{byStatus[row.key]}</span>
           </li>
         ))}
       </ul>

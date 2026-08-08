@@ -1,17 +1,24 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getErrorMessage, requestJson } from "@/lib/apiClient";
 import type { TasksSummary } from "@/types/api";
 
 export function useReports() {
   const [summary, setSummary] = useState<TasksSummary | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState("");
+  const hasLoadedRef = useRef(false);
 
   const fetchSummary = useCallback(async () => {
+    const isRetry = hasLoadedRef.current;
+
     try {
-      setLoading(true);
+      if (isRetry) {
+        setIsRefreshing(true);
+      }
+
       setError("");
 
       const data = await requestJson<TasksSummary>(
@@ -22,10 +29,12 @@ export function useReports() {
       );
 
       setSummary(data);
+      hasLoadedRef.current = true;
     } catch (err) {
       setError(getErrorMessage(err, "Could not load report right now."));
     } finally {
-      setLoading(false);
+      setIsInitialLoading(false);
+      setIsRefreshing(false);
     }
   }, []);
 
@@ -35,7 +44,8 @@ export function useReports() {
 
   return {
     summary,
-    loading,
+    isInitialLoading,
+    isRefreshing,
     error,
     fetchSummary,
   };

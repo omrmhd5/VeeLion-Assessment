@@ -21,16 +21,16 @@ export async function requestJson<T>(
   });
 
   if (!response.ok) {
+    let message = `Request failed with ${response.status}`;
+
     try {
       const body = (await response.json()) as ErrorResponse;
-      throw new Error(
-        body.error?.message || `Request failed with ${response.status}`,
-      );
-    } catch (error) {
-      throw new Error(
-        getErrorMessage(error, `Request failed with ${response.status}`),
-      );
+      message = body.error?.message || message;
+    } catch {
+      // Response body was not JSON — keep the status-based message.
     }
+
+    throw new Error(message);
   }
 
   return (await response.json()) as T;

@@ -6,6 +6,12 @@ const FILTERS: Array<{ label: string; value: TaskFilter }> = [
   { label: "To do", value: "pending" },
 ];
 
+const FILTER_BUTTON_CLASS: Record<TaskFilter, string> = {
+  all: "button--filter-all",
+  completed: "button--filter-done",
+  pending: "button--filter-todo",
+};
+
 type StatusFilterProps = {
   value: TaskFilter;
   onChange: (value: TaskFilter) => void;
@@ -15,9 +21,8 @@ export function StatusFilter({ value, onChange }: StatusFilterProps) {
   return (
     <section
       aria-label="Filter tasks by status"
-      className="card"
-      style={{ padding: "0.8rem" }}>
-      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+      className="card card--padded-sm card--flat">
+      <div className="button-row">
         {FILTERS.map((filter) => {
           const active = filter.value === value;
 
@@ -25,7 +30,11 @@ export function StatusFilter({ value, onChange }: StatusFilterProps) {
             <button
               key={filter.value}
               type="button"
-              className={active ? "button primary" : "button"}
+              className={
+                active
+                  ? `button ${FILTER_BUTTON_CLASS[filter.value]} button--filter-active`
+                  : "button"
+              }
               onClick={() => onChange(filter.value)}
               aria-pressed={active}>
               {filter.label}

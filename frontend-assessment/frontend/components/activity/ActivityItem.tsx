@@ -7,16 +7,12 @@ type ActivityItemProps = {
 
 export function ActivityItem({ item }: ActivityItemProps) {
   return (
-    <li
-      style={{
-        borderBottom: "1px solid var(--border)",
-        paddingBottom: "0.6rem",
-      }}>
-      <div style={{ fontWeight: 600 }}>{item.action || "(no action)"}</div>
-      <div>{item.info || "(no info)"}</div>
-      <small style={{ color: "var(--muted)" }}>
-        {formatActivityTime(item.when)}
-      </small>
+    <li className="activity-item">
+      <div className="activity-item__action">
+        {item.action || "(no action)"}
+      </div>
+      <div className="activity-item__info">{item.info || "(no info)"}</div>
+      <small className="text-meta">{formatActivityTime(item.when)}</small>
     </li>
   );
 }

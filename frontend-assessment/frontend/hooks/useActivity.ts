@@ -5,6 +5,7 @@ import {
   useDeferredValue,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { getErrorMessage, requestJson } from "@/lib/apiClient";
@@ -14,14 +15,21 @@ import type { ActivityLog } from "@/types/api";
 export function useActivity() {
   const [allActivity, setAllActivity] = useState<ActivityLog[]>([]);
   const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState("");
+  const hasLoadedRef = useRef(false);
 
   const deferredQuery = useDeferredValue(query);
 
   const fetchActivity = useCallback(async () => {
+    const isRetry = hasLoadedRef.current;
+
     try {
-      setLoading(true);
+      if (isRetry) {
+        setIsRefreshing(true);
+      }
+
       setError("");
 
       const data = await requestJson<ActivityLog[]>("/api/activity", {
@@ -29,10 +37,12 @@ export function useActivity() {
       });
 
       setAllActivity(data || []);
+      hasLoadedRef.current = true;
     } catch (err) {
       setError(getErrorMessage(err, "Could not load activity right now."));
     } finally {
-      setLoading(false);
+      setIsInitialLoading(false);
+      setIsRefreshing(false);
     }
   }, []);
 
@@ -56,7 +66,8 @@ export function useActivity() {
   return {
     filteredActivity,
     query,
-    loading,
+    isInitialLoading,
+    isRefreshing,
     error,
     stats,
     setQuery,

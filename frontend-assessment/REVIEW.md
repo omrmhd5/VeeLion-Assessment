@@ -54,6 +54,11 @@ What was implemented and which findings each change resolves.
 - **TypeScript types** in `types/api.ts` — `Task`, `ActivityLog`, and response wrappers are defined.
 - **Accessibility basics in Tasks** — `aria-label` on task list, `aria-pressed` on filter buttons, `aria-label` on toggle buttons in `TaskItem`.
 - **CSS variables** in `globals.css` — consistent tokens for colors, radius, and spacing.
+- **Shared layout** — `AppShell` + `AppNav` in `layout.tsx` with active route highlighting across Home, Tasks, Activity, and Reports.
+- **Design system classes** — reusable card, button, badge, and state styles in `globals.css` (no inline styles in components).
+- **UI polish** — guided by [taste-skill](https://github.com/Leonxlnx/taste-skill) and [Emil Kowalski design-engineering skills](https://github.com/emilkowalski/skills); includes light/dark toggle, Plus Jakarta Sans typography, and shared nav.
+- **Reports module** — `/reports` with `useReports`, API proxy, and status breakdown UI.
+- **Optimistic task toggle** — immediate UI update with rollback on PATCH failure.
 
 ---
 
@@ -844,7 +849,7 @@ export async function requestJson<T>(url: string, init?: RequestInit): Promise<T
 
 **Where:** `frontend/hooks/useActivity.ts` (new), `frontend/lib/activityUtils.ts` (new)
 
-**What we did:** Replaced timer, duplicate filters, and redundant state with source state + `useMemo`. Search uses `useDeferredValue`. Fetches via `requestJson` with loading, error, and retry support. Removed dead `everySecondTick` from stats.
+**What we did:** Replaced timer, duplicate filters, and redundant state with source state + `useMemo`. Search uses `useDeferredValue`. Fetches via `requestJson` with `isInitialLoading` / `isRefreshing`, error, and retry support. Removed dead `everySecondTick` from stats.
 
 ```typescript
 // source state only — no tick, shownActivity, or forcedList
@@ -897,7 +902,7 @@ const stats = useMemo(
 
 ```tsx
 // ActivityItem.tsx — single timestamp line
-<small style={{ color: "var(--muted)" }}>{formatActivityTime(item.when)}</small>
+<small className="text-meta">{formatActivityTime(item.when)}</small>
 ```
 
 **Tested:** Search filters by `action` / `info`; empty search shows "No activity matches this search."
@@ -910,16 +915,11 @@ const stats = useMemo(
 
 **Where:** `frontend/app/activity/page.tsx`
 
-**What we did:** Page is now a thin wrapper like Tasks — nav + `<ActivityFeed />`. All client logic lives in the hook and components.
+**What we did:** Page is a thin server wrapper like Tasks — renders `<ActivityFeed />` only. Navigation lives in `AppShell` via `layout.tsx`.
 
 ```tsx
 export default function ActivityPage() {
-  return (
-    <main className="stack">
-      <nav>...</nav>
-      <ActivityFeed />
-    </main>
-  );
+  return <ActivityFeed />;
 }
 ```
 
@@ -953,7 +953,7 @@ const status = task.status ?? (task.completed ? "done" : "todo");
 
 **Where:** `frontend/hooks/useTasks.ts`
 
-**What we did:** UI updates immediately on toggle; rolls back if PATCH fails.
+**What we did:** UI updates immediately on toggle; rolls back if PATCH fails. Button label follows the optimistic state (no "Saving..." flash); the control is briefly disabled with `button--busy` to prevent double submits.
 
 ```typescript
 setTasks((current) => {
@@ -965,7 +965,14 @@ setTasks((current) => {
 // catch → setTasks(previousTasks);
 ```
 
-**Tested:** Toggle updates badge instantly; failed PATCH restores previous state.
+```tsx
+// TaskItem — label reflects optimistic state while request is in flight
+<button className={busy ? "button button--busy" : "button"} disabled={busy}>
+  {task.completed ? "Mark as Pending" : "Mark as Completed"}
+</button>
+```
+
+**Tested:** Toggle updates badge and button label instantly; failed PATCH restores previous state.
 
 ---
 
@@ -1015,18 +1022,37 @@ const data = await requestJson<TasksSummary>("/api/reports/tasks-summary");
 
 **Where:** `frontend/components/reports/ReportsDashboard.tsx`, `StatusBreakdown.tsx`, `frontend/app/reports/page.tsx`, `frontend/app/page.tsx`
 
-**What we did:** New page shows total tasks, status breakdown, and recent activity count. Loading and error + retry match Tasks/Activity. Home page links to `/reports`.
+**What we did:** New page shows total tasks, status breakdown, and recent activity count. Loading, error, and retry match Tasks/Activity. Retry keeps the last successful summary visible. Home page links to `/reports`.
 
 ```tsx
+const showSummary = !isInitialLoading && (!error || summary);
+
 {
-  !loading && !error && summary ? (
+  showSummary && summary ? (
     <>
-      <section className="card">...</section> {/* total */}
+      <section className="stats-grid">...</section>
       <StatusBreakdown byStatus={summary.byStatus} />
-      <section className="card">...</section> {/* recentActivityCount */}
     </>
   ) : null;
 }
 ```
 
 **Tested:** `npm run build` passes; `/reports` route included in build output.
+
+---
+
+### Phase 4 — UI polish
+
+**Fixes:** Maintainability #5, UX #4, UX #5 _(Activity/Reports)_, UX #7
+
+**Skills used:** UI polish followed [taste-skill](https://github.com/Leonxlnx/taste-skill) (layout, tokens, anti-slop patterns) and [Emil Kowalski design-engineering skills](https://github.com/emilkowalski/skills) (motion, button feedback, interaction timing).
+
+**What we did:**
+
+- Replaced inline styles with a shared class system in `globals.css` (cards, buttons, badges, loading/error states).
+- Added sticky `AppNav` and richer home module cards with descriptions and hover states.
+- Set typography to Plus Jakarta Sans + JetBrains Mono via `next/font`.
+- Added optional light/dark mode with a nav toggle, `localStorage` persistence, and system preference as the first-visit default.
+- Aligned Activity and Reports retry UX with Tasks (`isInitialLoading` / `isRefreshing`).
+
+**Tested:** No inline styles in components or pages. Theme toggle persists across reloads. `npm run build` passes.
