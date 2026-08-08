@@ -24,13 +24,29 @@ export type TaskResponse = {
   data: Task;
 };
 
+export type CreateTaskRequest = {
+  title: string;
+  completed?: boolean;
+};
+
+export type PatchTaskRequest = {
+  title?: string;
+  completed?: boolean;
+  status?: TaskStatus;
+};
+
+export type CreateActivityRequest = {
+  action?: string;
+  info?: string;
+};
+
 export type ErrorResponse = {
   error?: {
     message?: string;
   };
 };
 
-export type TaskFilter = "all" | "completed" | "pending";
+export type TaskFilter = "all" | "completed" | "pending" | "in-progress";
 
 export type TasksByStatus = {
   todo: number;

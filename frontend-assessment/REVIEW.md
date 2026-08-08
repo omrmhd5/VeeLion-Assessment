@@ -58,7 +58,7 @@ What was implemented and which findings each change resolves.
 - **Design system classes** — reusable card, button, badge, and state styles in `globals.css` (no inline styles in components).
 - **UI polish** — guided by [taste-skill](https://github.com/Leonxlnx/taste-skill), [Emil Kowalski skills](https://github.com/emilkowalski/skills), and [Impeccable](https://github.com/pbakaus/impeccable); light/dark toggle, Plus Jakarta Sans, shared nav.
 - **Reports module** — `/reports` with `useReports`, API proxy, and status breakdown UI.
-- **Optimistic task toggle** — immediate UI update with rollback on PATCH failure.
+- **Task & activity integration** — full task API proxies, CRUD UI, status filters, and activity logging on mutations (Phase 5).
 
 ---
 
@@ -1055,3 +1055,20 @@ const showSummary = !isInitialLoading && (!error || summary);
 - Final Impeccable pass: skip link, focus rings, live regions on loading/errors, 44px touch targets, mobile nav wrap, token cleanup.
 
 **Tested:** No inline styles. Theme toggle persists. Impeccable detector clean. `npm run build` passes.
+
+---
+
+### Phase 5 — Task API coverage & activity integration
+
+**Fixes:** UX #6 _(extended)_, README constraint _(full `backend-endpoints.md` task coverage)_
+
+**What we did:**
+
+- Wired remaining task API proxies: `GET/POST /tasks`, `GET/PATCH/DELETE /tasks/:id`, plus `POST /activity`.
+- After each task create, update, or delete, the Next.js API routes call `logTaskActivity` (`task.created` / `task.updated` / `task.deleted` with task id in `info`) — same pattern as `backend-assessment` task mutations.
+- Extended Tasks UI: create form, inline title edit, delete, icon actions (complete / in progress / edit / trash), and **In progress** filter aligned with `todo | in-progress | done`.
+- `PATCH` sends `status` alongside `completed` so in-progress state persists in `tasks.json` even though the provided backend only documents `completed`.
+
+**Note:** Reports `byStatus.in-progress` may still read `0` if the provided reports service only counts `completed` — a backend limitation, not missing frontend work.
+
+**Tested:** Task CRUD and status changes appear in Activity feed after refresh.

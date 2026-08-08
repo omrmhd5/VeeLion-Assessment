@@ -1,8 +1,9 @@
 "use client";
 
 import { useTasks } from "@/hooks/useTasks";
-import type { Task } from "@/types/api";
+import type { Task, TaskStatus } from "@/types/api";
 import { StatusFilter } from "@/components/tasks/StatusFilter";
+import { TaskCreateForm } from "@/components/tasks/TaskCreateForm";
 import { TaskList } from "@/components/tasks/TaskList";
 
 export function TaskDashboard() {
@@ -11,15 +12,28 @@ export function TaskDashboard() {
     filter,
     isInitialLoading,
     isRefreshing,
+    isCreating,
     error,
     updatingTaskId,
+    deletingTaskId,
     setFilter,
     fetchTasks,
+    createTask,
     updateTaskStatus,
+    updateTaskTitle,
+    deleteTask,
   } = useTasks();
 
-  const handleToggle = (task: Task) => {
-    updateTaskStatus(task.id, !task.completed);
+  const handleStatusChange = (task: Task, status: TaskStatus) => {
+    updateTaskStatus(task.id, status);
+  };
+
+  const handleDelete = (task: Task) => {
+    deleteTask(task.id);
+  };
+
+  const handleUpdateTitle = (task: Task, title: string) => {
+    return updateTaskTitle(task.id, title);
   };
 
   const showList = !isInitialLoading;
@@ -29,9 +43,11 @@ export function TaskDashboard() {
       <header className="card card--padded page-header">
         <h1 className="page-header__title">Task Dashboard</h1>
         <p className="page-header__lead">
-          Filter tasks and mark them complete without leaving the page.
+          Create, edit, filter, and complete tasks without leaving the page.
         </p>
       </header>
+
+      <TaskCreateForm busy={isCreating} onCreate={createTask} />
 
       <StatusFilter value={filter} onChange={setFilter} />
 
@@ -68,7 +84,10 @@ export function TaskDashboard() {
         <TaskList
           tasks={filteredTasks}
           updatingTaskId={updatingTaskId}
-          onToggle={handleToggle}
+          deletingTaskId={deletingTaskId}
+          onStatusChange={handleStatusChange}
+          onDelete={handleDelete}
+          onUpdateTitle={handleUpdateTitle}
         />
       ) : null}
     </section>

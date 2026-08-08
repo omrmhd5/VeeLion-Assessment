@@ -1,13 +1,23 @@
-import type { Task } from "@/types/api";
+import type { Task, TaskStatus } from "@/types/api";
 import { TaskItem } from "@/components/tasks/TaskItem";
 
 type TaskListProps = {
   tasks: Task[];
   updatingTaskId: string;
-  onToggle: (task: Task) => void;
+  deletingTaskId: string;
+  onStatusChange: (task: Task, status: TaskStatus) => void;
+  onDelete: (task: Task) => void;
+  onUpdateTitle: (task: Task, title: string) => Promise<void>;
 };
 
-export function TaskList({ tasks, updatingTaskId, onToggle }: TaskListProps) {
+export function TaskList({
+  tasks,
+  updatingTaskId,
+  deletingTaskId,
+  onStatusChange,
+  onDelete,
+  onUpdateTitle,
+}: TaskListProps) {
   if (tasks.length === 0) {
     return (
       <section className="card card--padded">
@@ -24,7 +34,10 @@ export function TaskList({ tasks, updatingTaskId, onToggle }: TaskListProps) {
             key={task.id}
             task={task}
             busy={updatingTaskId === task.id}
-            onToggle={onToggle}
+            deleting={deletingTaskId === task.id}
+            onStatusChange={onStatusChange}
+            onDelete={onDelete}
+            onUpdateTitle={onUpdateTitle}
           />
         ))}
       </ul>
