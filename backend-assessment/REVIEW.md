@@ -897,14 +897,18 @@ const updatedTask = syncStatusAndCompleted({
 
 **Where:** `taskValidator.js`, `tasks.service.js`, `data/tasks.json`
 
-**What we did:** Added `status` (`todo` | `in-progress` | `done`) with validation. Existing seed tasks updated; `status` and `completed` stay in sync on create/update.
+**What we did:** Added `status` (`todo` | `in-progress` | `done`) to tasks; kept in sync with `completed`. Seed data updated.
 
 ```javascript
-if (
-  typeof payload.status !== "string" ||
-  !VALID_STATUSES.includes(payload.status)
-) {
-  throw new HttpError(400, '"status" must be one of: todo, in-progress, done.');
+function syncStatusAndCompleted(task) {
+  if (Object.hasOwn(task, "status")) {
+    task.completed = task.status === "done";
+    return task;
+  }
+  if (Object.hasOwn(task, "completed")) {
+    task.status = task.completed ? "done" : "todo";
+  }
+  return task;
 }
 ```
 
