@@ -785,3 +785,68 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is running on port ${PORT}`);
 });
 ```
+
+---
+
+### Phase 2 — Activity module
+
+#### Replace sync file I/O with async `jsonStore`
+
+**Fixes:** Bug #3, Bug #4, Performance #1, Code Quality #1
+
+**Where:** `src/modules/activity/services/activity.service.js`
+
+**What we did:** Removed sync `fs`, duplicate loaders, and `Date.now()` IDs. Activity now uses async `jsonStore` and `createId()` like Tasks.
+
+```javascript
+async function getAllActivity() {
+  return readJsonArray(ACTIVITY_FILE_PATH);
+}
+
+async function createActivity(payload) {
+  const activities = await readJsonArray(ACTIVITY_FILE_PATH);
+  const activity = buildActivityRecord(payload);
+  activities.push(activity);
+  await writeJsonArray(ACTIVITY_FILE_PATH, activities);
+  return activity;
+}
+```
+
+---
+
+#### Validate activity input in a dedicated validator
+
+**Fixes:** Bug #5, Security #2 (activity fields)
+
+**Where:** `src/modules/activity/utils/activityValidator.js` (new)
+
+**What we did:** Require non-empty `action` and `info` strings, reject unknown fields, and enforce a max length before persisting.
+
+```javascript
+const payload = validateCreateActivity(req.body);
+const activity = await activityService.createActivity(payload);
+```
+
+---
+
+#### Align controller and routes with Tasks conventions
+
+**Fixes:** Maint #2, #3, Security #4, Code Quality #2, #3
+
+**Where:** `src/modules/activity/controllers/activity.controller.js`, `src/modules/activity/routes/activity.routes.js`
+
+**What we did:** Renamed handlers (`listActivity`, `createActivity`), wrapped routes in `asyncHandler`, return `{ data }` responses, and set explicit status codes.
+
+```javascript
+activityRouter.get("/", asyncHandler(activityController.listActivity));
+activityRouter.post("/", asyncHandler(activityController.createActivity));
+```
+
+```javascript
+async function listActivity(req, res) {
+  const activities = await activityService.getAllActivity();
+  res.status(200).json({ data: activities });
+}
+```
+
+**Tested:** `GET /activity` and `POST /activity` — both returned expected `{ data }` responses; empty body correctly returns `400`.
